@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mutant Detector • Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="color-scheme" content="light dark">
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen">
+  <div class="max-w-4xl mx-auto p-6">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-semibold tracking-tight">Mutant Detector</h1>
+      <a class="text-blue-600 hover:underline" href="/swagger-ui.html">Swagger UI</a>
+    </header>
+
+    <section class="grid md:grid-cols-2 gap-6">
+      <!-- Panel de verificación -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-5">
+        <h2 class="text-lg font-medium mb-3">Verificar ADN</h2>
+        <p class="text-sm text-slate-500 mb-3">Ingresa una matriz NxN con letras A, T, C, G. Puedes separar por comas o por líneas.</p>
+        <textarea id="dnaInput" class="w-full h-40 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-sm font-mono" placeholder='Ejemplo:\nATGCGA, CAGTGC, TTATGT, AGAAGG, CCCCTA, TCACTG'></textarea>
+        <div class="flex items-center gap-3 mt-4">
+          <button id="checkBtn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">Comprobar</button>
+          <span id="resultBadge" class="hidden text-sm px-2 py-1 rounded-md"></span>
+        </div>
+        <p id="errorMsg" class="mt-3 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <!-- Panel de estadísticas -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-medium">Estadísticas</h2>
+          <button id="refreshStats" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-sm">Actualizar</button>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/30">
+            <div id="mutants" class="text-2xl font-semibold">-</div>
+            <div class="text-xs text-green-700 dark:text-green-300">Mutantes</div>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-700/50">
+            <div id="humans" class="text-2xl font-semibold">-</div>
+            <div class="text-xs text-slate-600 dark:text-slate-300">Humanos</div>
+          </div>
+          <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+            <div id="ratio" class="text-2xl font-semibold">-</div>
+            <div class="text-xs text-blue-700 dark:text-blue-300">Ratio</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-xs text-slate-500">
+      Backend en Spring Boot 3 • H2 persistente • UI estática
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function parseDna(raw) {
+      if (!raw) return [];
+      const parts = raw
+        .split(/\n|,/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      return parts;
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/stats');
+        if (!res.ok) throw new Error('No se pudo obtener /stats');
+        const data = await res.json();
+        $('mutants').textContent = data.count_mutant_dna;
+        $('humans').textContent = data.count_human_dna;
+        $('ratio').textContent = data.ratio;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function checkDna() {
+      $('errorMsg').classList.add('hidden');
+      $('resultBadge').classList.add('hidden');
+
+      const dna = parseDna($('dnaInput').value);
+      if (!dna.length) {
+        $('errorMsg').textContent = 'Ingrese una matriz NxN con letras A, T, C, G';
+        $('errorMsg').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/mutant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dna })
+        });
+
+        if (res.status === 200) {
+          const badge = $('resultBadge');
+          badge.textContent = 'Mutante ✅';
+          badge.className = 'text-sm px-2 py-1 rounded-md bg-green-600 text-white';
+          badge.classList.remove('hidden');
+        } else if (res.status === 403) {
+          const badge = $('resultBadge');
+          badge.textContent = 'Humano ❌';
+          badge.className = 'text-sm px-2 py-1 rounded-md bg-red-600 text-white';
+          badge.classList.remove('hidden');
+        } else {
+          const err = await res.json().catch(() => ({}));
+          $('errorMsg').textContent = err.message || 'Error de validación';
+          $('errorMsg').classList.remove('hidden');
+        }
+      } catch (e) {
+        $('errorMsg').textContent = 'No se pudo contactar al backend';
+        $('errorMsg').classList.remove('hidden');
+      }
+
+      // Actualiza stats tras la verificación
+      fetchStats();
+    }
+
+    $('checkBtn').addEventListener('click', checkDna);
+    $('refreshStats').addEventListener('click', fetchStats);
+
+    // Carga inicial
+    fetchStats();
+  </script>
+</body>
+</html>
