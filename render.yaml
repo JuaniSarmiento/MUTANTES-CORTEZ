@@ -1,10 +1,8 @@
 services:
   - type: web
     name: MutantesGlobal
-    env: java
+    env: docker
     plan: free
-    buildCommand: chmod +x mvnw && ./mvnw clean package -DskipTests
-    startCommand: java -jar target/mutant-detector-1.0.0.jar
     envVars:
-      - key: JAVA_VERSION
-        value: 17
+      - key: PORT
+        value: 8080
