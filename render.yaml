@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: MutantesGlobal
+    env: java
+    plan: free
+    buildCommand: chmod +x mvnw && ./mvnw clean package -DskipTests
+    startCommand: java -jar target/mutant-detector-1.0.0.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
