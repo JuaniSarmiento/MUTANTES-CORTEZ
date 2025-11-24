@@ -15,8 +15,8 @@
     <groupId>com.mercadolibre</groupId>
     <artifactId>mutant-detector</artifactId>
     <version>1.0.0</version>
-    <name>Mutant Detector</name>
-    <description>API REST para detectar mutantes basado en secuencias de ADN</description>
+    <name>DNA Mutant Analyzer</name>
+    <description>Sistema de análisis genético para identificación de mutantes mediante secuencias de ADN</description>
     
     <properties>
         <java.version>17</java.version>

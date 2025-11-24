@@ -1,8 +1,15 @@
 services:
   - type: web
-    name: MutantesGlobal
+    name: dna-mutant-analyzer
     env: docker
     plan: free
+    region: oregon
+    buildCommand: ./mvnw clean install -DskipTests
+    startCommand: java -jar target/mutant-detector-1.0.0.jar
     envVars:
       - key: PORT
         value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: DATABASE_PATH
+        generateValue: true

@@ -1,14 +1,14 @@
-# Mutant Detector API
+# DNA Mutant Analyzer
 
-API REST para detección de mutantes basada en secuencias de ADN. Desarrollado para el desafío técnico de MercadoLibre.
+Sistema avanzado de análisis genético para identificación de mutantes basado en patrones de ADN. Proyecto desarrollado como parte del desafío técnico de MercadoLibre.
 
 ## 🧬 Descripción del Proyecto
 
-Magneto quiere reclutar mutantes y necesita una herramienta que detecte si un humano es mutante basándose en su secuencia de ADN. Se considera mutante si se encuentran **más de una secuencia** de cuatro letras iguales (A, T, C, G) de forma horizontal, vertical u oblicua.
+Este sistema permite detectar mutantes analizando secuencias de ADN. Un individuo se clasifica como mutante cuando su secuencia contiene **más de una cadena** de cuatro bases nitrogenadas idénticas (A, T, C, G) en cualquier dirección: horizontal, vertical o diagonal.
 
-### Ejemplos
+### Ejemplos de Análisis
 
-**Mutante (Horizontal + Vertical)**
+**Caso 1: Mutante Detectado (Diagonal + Horizontal)**
 ```
 ATGCGA
 CAGTGC
@@ -17,90 +17,92 @@ AGAAGG
 CCCCTA
 TCACTG
 ```
+Resultado: 2 secuencias encontradas (diagonal AAAA + horizontal CCCC)
 
-**Humano (No Mutante)**
+**Caso 2: Humano Normal**
 ```
 ATGCGA
 CAGTGC
-TTATGT
-AGAAGG
-CCCTTA
+TTATTT
+AGACGG
+GCGTCA
 TCACTG
 ```
+Resultado: 1 secuencia encontrada - No califica como mutante
 
-## 🚀 Tecnologías Utilizadas
+## 🛠️ Stack Tecnológico
 
-- **Java 17**
-- **Spring Boot 3.2.0**
-- **Spring Data JPA** con Hibernate
-- **H2 Database** (persistente en disco: `~/test`)
-- **Lombok** (reducción de boilerplate)
-- **Swagger/OpenAPI** (documentación)
-- **JUnit 5 + Mockito** (testing)
-- **Jacoco** (cobertura de código)
+- **Java 17 LTS**
+- **Spring Boot 3.2.0** (Framework principal)
+- **Spring Data JPA** + Hibernate ORM
+- **H2 Database 2.x** (almacenamiento en disco)
+- **Lombok 1.18.x** (reducción de código boilerplate)
+- **SpringDoc OpenAPI 3** (documentación interactiva)
+- **JUnit 5 + Mockito** (suite de testing)
+- **Jacoco** (análisis de cobertura)
 
-## 🏗️ Arquitectura
+## 🏛️ Arquitectura del Sistema
 
-Arquitectura N-Capas con separación clara de responsabilidades:
+Diseño por capas con clara separación de responsabilidades:
 
 ```
-├── domain/
-│   ├── detector/          # Algoritmo puro de detección
-│   ├── entity/            # Entidades JPA
-│   └── repository/        # Interfaces de repositorio
-├── application/
-│   ├── dto/               # Data Transfer Objects
-│   ├── service/           # Lógica de negocio
-│   └── validation/        # Validaciones customizadas
-└── infrastructure/
-    ├── controller/        # Controladores REST
-    └── exception/         # Manejo de excepciones
+├── domain/              # Capa de dominio
+│   ├── detector/       # Lógica central de detección
+│   ├── entity/         # Modelos de datos
+│   └── repository/     # Acceso a datos
+├── application/         # Capa de aplicación
+│   ├── dto/            # Objetos de transferencia
+│   ├── service/        # Servicios de negocio
+│   └── validation/     # Validadores personalizados
+└── infrastructure/      # Capa de infraestructura
+    ├── controller/     # APIs REST
+    └── exception/      # Manejo global de errores
 ```
 
-## ⚡ Optimizaciones Implementadas
+## ⚡ Características de Rendimiento
 
-### 1. Algoritmo de Alto Rendimiento
+### 1. Motor de Análisis Optimizado
 
-- **Conversión a `char[][]`**: Evita el overhead de `String.charAt()` (~2-3x más rápido)
-- **Early Termination**: Detiene la búsqueda al encontrar >1 secuencia
-- **Loop Unrolling**: Verifica secuencias sin bucles internos
-- **Complejidad**: O(N²) worst case, ~O(N) average case para mutantes
+- **Arrays nativos**: Uso de `char[][]` para máxima velocidad de acceso
+- **Terminación anticipada**: Finaliza al detectar más de una secuencia
+- **Expansión de bucles**: Verificación directa sin iteraciones internas
+- **Complejidad temporal**: O(N²) en peor caso, O(N) promedio para mutantes
 
-### 2. Persistencia Inteligente
+### 2. Gestión de Datos Eficiente
 
-- **Hash SHA-256**: Clave primaria única para evitar duplicados
-- **Caché automático**: No analiza dos veces el mismo ADN
-- **Índices optimizados**: Queries de estadísticas en O(1)
+- **Identificación única**: Hash SHA-256 como clave primaria
+- **Evitar duplicados**: Sistema de caché automático
+- **Consultas rápidas**: Índices optimizados para estadísticas O(1)
 
-### 3. Validaciones
+### 3. Validación Robusta
 
-- Validación customizada `@ValidDna` antes de procesar
-- Matriz NxN cuadrada
-- Solo caracteres válidos (A, T, C, G)
+- Anotación `@ValidDna` personalizada
+- Verificación de matriz cuadrada NxN
+- Solo bases válidas: A, T, C, G
 
-## 📋 Endpoints
+## 🔌 API Endpoints
 
 ### POST /mutant
 
-Analiza una secuencia de ADN y determina si es mutante.
+Evalúa una secuencia de ADN y determina su clasificación.
 
-**Request:**
+**Solicitud:**
 ```json
 {
   "dna": ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"]
 }
 ```
 
-**Response:**
-- `200 OK` - Es mutante
-- `403 FORBIDDEN` - No es mutante
-- `400 BAD REQUEST` - Datos inválidos
+**Respuestas:**
+- `200 OK` - Mutante detectado
+- `403 FORBIDDEN` - Humano normal
+- `400 BAD REQUEST` - Formato inválido
 
 ### GET /stats
 
-Retorna estadísticas de verificaciones.
+Obtiene métricas de análisis realizados.
 
-**Response:**
+**Respuesta:**
 ```json
 {
   "count_mutant_dna": 40,
@@ -109,41 +111,41 @@ Retorna estadísticas de verificaciones.
 }
 ```
 
-## 🛠️ Instalación y Ejecución
+## 🛠️ Configuración y Ejecución
 
-### Requisitos
+### Prerequisitos
 
-- Java 17 o superior
-- Maven Wrapper incluido (no requiere instalación de Maven)
+- Java Development Kit (JDK) 17+
+- Maven Wrapper (incluido en el proyecto)
 
-### Inicio Rápido
+### Inicio del Proyecto
 
-**Windows:**
+**En Windows:**
 ```powershell
-# Compilar y ejecutar tests
+# Ejecutar pruebas
 .\mvnw clean test
 
-# Ejecutar la aplicación
+# Iniciar aplicación
 .\mvnw spring-boot:run
 
-# La aplicación estará disponible en:
-# - Swagger UI: http://localhost:8080/swagger-ui.html
-# - H2 Console: http://localhost:8080/h2-console
+# Acceso:
+# - Documentación API: http://localhost:8080/swagger-ui.html
+# - Consola H2: http://localhost:8080/h2-console
 ```
 
-**Linux/Mac:**
+**En Linux/Mac:**
 ```bash
-# Compilar y ejecutar tests
+# Ejecutar pruebas
 ./mvnw clean test
 
-# Ejecutar la aplicación
+# Iniciar aplicación
 ./mvnw spring-boot:run
 ```
 
-**Scripts de conveniencia (Windows):**
+**Scripts de inicio rápido (Windows):**
 ```powershell
-# Inicio rápido con build y run
-.\start.bat   # o .\start.ps1
+.\start.ps1   # PowerShell
+.\start.bat   # CMD
 ```
 
 ### Tareas de VS Code
@@ -157,28 +159,28 @@ El proyecto incluye tareas configuradas. Abre Command Palette (`Ctrl+Shift+P`) y
 - **Open Swagger UI** - Abre Swagger en el navegador
 - **Open H2 Console** - Abre consola H2 en el navegador
 
-### Ejecutar Tests
+### Suite de Pruebas
 
 ```powershell
-# Ejecutar todos los tests
+# Ejecutar todas las pruebas
 .\mvnw test
 
 # Generar reporte de cobertura (Jacoco)
 .\mvnw clean install
 .\mvnw jacoco:report
 
-# El reporte estará en target\site\jacoco\index.html
+# Reporte disponible en: target\site\jacoco\index.html
 ```
 
-## 📊 Cobertura de Tests
+## 📊 Cobertura de Pruebas
 
-El proyecto incluye tests exhaustivos con cobertura **>80%**:
+Suite completa de tests unitarios e integración con cobertura superior al 80%:
 
-- **MutantDetectorTest**: 20+ tests del algoritmo
-- **MutantServiceTest**: Tests de caché y persistencia
-- **StatsServiceTest**: Tests de estadísticas y ratios
-- **MutantControllerTest**: Tests de integración de endpoints
-- **DnaValidatorTest**: Tests de validaciones
+- **MutantDetectorTest**: 20+ casos del motor de detección
+- **MutantServiceTest**: Pruebas de persistencia y caché
+- **StatsServiceTest**: Validación de cálculos estadísticos
+- **MutantControllerTest**: Tests de endpoints REST
+- **DnaValidatorTest**: Validación de formatos de entrada
 
 ## 📖 Documentación API
 
@@ -188,34 +190,34 @@ La documentación interactiva está disponible con Swagger UI:
 http://localhost:8080/swagger-ui.html
 ```
 
-## 🗄️ Base de Datos
+## 🗄️ Almacenamiento de Datos
 
-### H2 Persistente
+### Configuración H2
 
-La base de datos H2 se guarda en disco para persistir entre reinicios:
+Base de datos embebida con persistencia en disco:
 
-- **Ubicación**: `~/test.mv.db` (home del usuario)
-- **Modo**: Persistente con `AUTO_SERVER=TRUE` (permite conexiones simultáneas)
-- **DDL**: `update` (mantiene datos entre ejecuciones)
+- **Ubicación**: `~/mutant_dna_records.mv.db`
+- **Modo**: Persistente con servidor TCP habilitado
+- **DDL**: Auto-actualización del esquema
 
-### H2 Console
+### Acceso a la Consola
 
-**Opción 1: Consola Web Integrada (recomendado)**
+**Consola Web H2:**
 ```
-http://localhost:8080/h2-console
+URL: http://localhost:8080/h2-console
 
-JDBC URL: jdbc:h2:file:~/test
-User: sa
-Password: (vacío)
+Conexión:
+  JDBC URL: jdbc:h2:file:~/mutant_dna_records
+  Usuario: sa
+  Contraseña: (vacío)
 ```
 
-**Opción 2: Cliente H2 Externo**
-Puedes conectar con un cliente externo (DBeaver, IntelliJ, etc.) mientras la app está corriendo:
+**Cliente Externo:**
+Puedes conectarte con DBeaver, IntelliJ u otra herramienta:
 ```
-JDBC URL: jdbc:h2:tcp://localhost/~/test
-User: sa
-Password: (vacío)
+JDBC URL: jdbc:h2:tcp://localhost/~/mutant_dna_records
 Driver: org.h2.Driver
+Usuario: sa
 ```
 
 ### Esquema
@@ -231,9 +233,9 @@ CREATE TABLE dna_records (
 CREATE INDEX idx_is_mutant ON dna_records(is_mutant);
 ```
 
-## 🎯 Casos de Uso
+## 💁 Ejemplos de Uso
 
-### Detectar Mutante
+### Analizar ADN
 
 ```powershell
 curl -X POST http://localhost:8080/mutant `
@@ -241,7 +243,7 @@ curl -X POST http://localhost:8080/mutant `
   -d '{"dna":["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"]}'
 ```
 
-### Obtener Estadísticas
+### Consultar Estadísticas
 
 ```powershell
 curl http://localhost:8080/stats
@@ -266,20 +268,20 @@ private boolean checkSequence(char[][] matrix, int row, int col,
 }
 ```
 
-## 📝 Reglas de la Rúbrica
+## ✅ Cumplimiento de Requisitos
 
-✅ **Performance Extrema**: char[][], Early Termination, O(N²) worst case
-✅ **Persistencia Inteligente**: Hash SHA-256, sin duplicados
-✅ **Endpoints Correctos**: POST /mutant (200/403), GET /stats
-✅ **Validaciones**: Matriz NxN, solo A/T/C/G
-✅ **Testing**: Cobertura >80% con JUnit 5 + Mockito
-✅ **Documentación**: Swagger/OpenAPI completo
-✅ **Arquitectura**: N-Capas clara y mantenible
+✔️ **Algoritmo Optimizado**: Arrays nativos, terminación anticipada, O(N²)
+✔️ **Persistencia Robusta**: Hash SHA-256, sin duplicación de análisis
+✔️ **APIs RESTful**: POST /mutant (200/403), GET /stats
+✔️ **Validación Completa**: Matrices NxN, bases válidas A/T/C/G
+✔️ **Testing Exhaustivo**: Cobertura >80% con JUnit 5 + Mockito
+✔️ **Documentación**: OpenAPI/Swagger totalmente integrado
+✔️ **Arquitectura Limpia**: Capas bien definidas y mantenibles
 
-## 🎓 Autor
+## 👨‍💻 Desarrollador
 
-Proyecto desarrollado para el desafío técnico de MercadoLibre - Mutant Detector Challenge
+Proyecto realizado para el desafío técnico de MercadoLibre
 
-## 📄 Licencia
+---
 
-Este proyecto es parte de un desafío técnico y está disponible para evaluación.
+**DNA Mutant Analyzer** - Sistema de Análisis Genético © 2025

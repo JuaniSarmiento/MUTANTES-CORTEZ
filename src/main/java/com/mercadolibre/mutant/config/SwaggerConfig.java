@@ -12,8 +12,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Mutant Detector API")
-                        .version("1.0")
-                        .description("API para detectar mutantes mediante análisis de ADN"));
+                        .title("DNA Mutant Analyzer API")
+                        .version("1.0.0")
+                        .description("Sistema avanzado de análisis genético para identificación de mutantes. "
+                                + "Detecta patrones específicos en secuencias de ADN mediante algoritmos optimizados."));
     }
 }
